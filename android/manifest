@@ -4,6 +4,7 @@
 #
 version: 3.0.1
 apiversion: 2
+architectures: armeabi armeabi-v7a x86
 description: In-App Billing Module
 author: Alexander Conway (Logical Labs) and Jon Alter
 license: Apache License, Version 2.0
