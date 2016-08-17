@@ -278,7 +278,7 @@ public class IabHelper {
             }
         }
     }
-    
+
     /**
      * Dispose of object, releasing resources. It's very important to call this
      * method when you are done with this object. It will release any resources
@@ -311,7 +311,7 @@ public class IabHelper {
 
     // Appc: added method
     public boolean isSetupDone(){
-    	return mSetupDone;
+        return mSetupDone;
     }
 
     /**
@@ -403,24 +403,24 @@ public class IabHelper {
             mRequestCode = requestCode;
             mPurchaseListener = listener;
             mPurchasingItemType = itemType;
-            
+
             // Appc: launching this pending intent using TiActivitySupport.launchIntentSenderForResult rather than
             // startIntentSenderForResult so we can get the result.
             TiActivityResultHandler wrapper = new TiActivityResultHandler() {
-    			public void onError(Activity activity, int requestCode, Exception e)
-    			{
-    				flagEndAsync();
-    				
-    				IabResult errorResult = new IabResult(IABHELPER_SEND_INTENT_FAILED, "Failed to send intent.");
-    	            if (listener != null) listener.onIabPurchaseFinished(errorResult, null);
-    			}
+                public void onError(Activity activity, int requestCode, Exception e)
+                {
+                    flagEndAsync();
 
-    			public void onResult(Activity activity, int requestCode, int resultCode, Intent data)
-    			{
-    				handleActivityResult(requestCode, resultCode, data);
-    			}
-    		};
-            
+                    IabResult errorResult = new IabResult(IABHELPER_SEND_INTENT_FAILED, "Failed to send intent.");
+                    if (listener != null) listener.onIabPurchaseFinished(errorResult, null);
+                }
+
+                public void onResult(Activity activity, int requestCode, int resultCode, Intent data)
+                {
+                    handleActivityResult(requestCode, resultCode, data);
+                }
+            };
+
             TiActivitySupport activitySupport = (TiActivitySupport) act;
             activitySupport.launchIntentSenderForResult(pendingIntent.getIntentSender(),
                                            requestCode, new Intent(),
@@ -480,7 +480,7 @@ public class IabHelper {
             logDebug("Expected item type: " + mPurchasingItemType);
 
             if (purchaseData == null || dataSignature == null) {
-            	logDebug("BUG: either purchaseData or dataSignature is null.");
+                logDebug("BUG: either purchaseData or dataSignature is null.");
                 logDebug("Extras: " + data.getExtras().toString());
                 result = new IabResult(IABHELPER_UNKNOWN_ERROR, "IAB returned null purchaseData or dataSignature");
                 if (mPurchaseListener != null) mPurchaseListener.onIabPurchaseFinished(result, null);
@@ -580,7 +580,7 @@ public class IabHelper {
                 }
 
                 if (querySkuDetails) {
-                	// Appc: changed 'moreItemSkus' be 'moreSubsSkus'
+                    // Appc: changed 'moreItemSkus' be 'moreSubsSkus'
                     r = querySkuDetails(ITEM_TYPE_SUBS, inv, moreSubsSkus);
                     if (r != BILLING_RESPONSE_RESULT_OK) {
                         throw new IabException(r, "Error refreshing inventory (querying prices of subscriptions).");
@@ -626,15 +626,15 @@ public class IabHelper {
     public void queryInventoryAsync(final boolean querySkuDetails,
                                final List<String> moreSkus,
                                final QueryInventoryFinishedListener listener) {
-    	queryInventoryAsync(querySkuDetails, moreSkus, null, listener);
+        queryInventoryAsync(querySkuDetails, moreSkus, null, listener);
     }
-    
+
     // Appc: changed the signature of this method to take lists of items and subs
     // public void queryInventoryAsync(final boolean querySkuDetails,
     //        final List<String> moreSkus,
     //        final QueryInventoryFinishedListener listener) {
     public void queryInventoryAsync(final boolean querySkuDetails,
-    		final List<String> moreItemSkus,
+            final List<String> moreItemSkus,
             final List<String> moreSubsSkus,
             final QueryInventoryFinishedListener listener) {
         final Handler handler = new Handler();
@@ -646,9 +646,9 @@ public class IabHelper {
                 IabResult result = new IabResult(BILLING_RESPONSE_RESULT_OK, "Inventory refresh successful.");
                 Inventory inv = null;
                 try {
-                	// Appc: changed the method that called here to allow passing subscription skus as well
+                    // Appc: changed the method that called here to allow passing subscription skus as well
                     // inv = queryInventory(querySkuDetails, moreSkus);
-                	inv = queryInventory(querySkuDetails, moreItemSkus, moreSubsSkus);
+                    inv = queryInventory(querySkuDetails, moreItemSkus, moreSubsSkus);
                 }
                 catch (IabException ex) {
                     result = ex.getResult();
@@ -929,51 +929,56 @@ public class IabHelper {
     }
 
     int querySkuDetails(String itemType, Inventory inv, List<String> moreSkus)
-                                throws RemoteException, JSONException {
-        logDebug("Querying SKU details.");
-        ArrayList<String> skuList = new ArrayList<String>();
-        skuList.addAll(inv.getAllOwnedSkus(itemType));
-        if (moreSkus != null) {
-            for (String sku : moreSkus) {
-                if (!skuList.contains(sku)) {
-                    skuList.add(sku);
-                }
+    throws RemoteException, JSONException {
+    logDebug("Querying SKU details.");
+    ArrayList<String> skuList = new ArrayList<String>();
+    skuList.addAll(inv.getAllOwnedSkus(itemType));
+    if (moreSkus != null) {
+        for (String sku : moreSkus) {
+            if (!skuList.contains(sku)) {
+                skuList.add(sku);
             }
         }
+    }
 
-        if (skuList.size() == 0) {
-            logDebug("queryPrices: nothing to do because there are no SKUs.");
-            return BILLING_RESPONSE_RESULT_OK;
-        }
+    if (skuList.size() == 0) {
+        logDebug("queryPrices: nothing to do because there are no SKUs.");
+        return BILLING_RESPONSE_RESULT_OK;
+    }
+
+    while (skuList.size() > 0) {
+        ArrayList<String> skuSubList = new ArrayList<String>(
+                skuList.subList(0, Math.min(5, skuList.size())));
+        skuList.removeAll(skuSubList);
 
         Bundle querySkus = new Bundle();
-        querySkus.putStringArrayList(GET_SKU_DETAILS_ITEM_LIST, skuList);
-        Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(),
-                itemType, querySkus);
+        querySkus.putStringArrayList(GET_SKU_DETAILS_ITEM_LIST, skuSubList);
+        Bundle skuDetails = mService.getSkuDetails(3,
+                mContext.getPackageName(), itemType, querySkus);
 
         if (!skuDetails.containsKey(RESPONSE_GET_SKU_DETAILS_LIST)) {
             int response = getResponseCodeFromBundle(skuDetails);
             if (response != BILLING_RESPONSE_RESULT_OK) {
-                logDebug("getSkuDetails() failed: " + getResponseDesc(response));
+                logDebug("getSkuDetails() failed: "
+                        + getResponseDesc(response));
                 return response;
-            }
-            else {
+            } else {
                 logError("getSkuDetails() returned a bundle with neither an error nor a detail list.");
                 return IABHELPER_BAD_RESPONSE;
             }
         }
 
-        ArrayList<String> responseList = skuDetails.getStringArrayList(
-                RESPONSE_GET_SKU_DETAILS_LIST);
+        ArrayList<String> responseList = skuDetails
+                .getStringArrayList(RESPONSE_GET_SKU_DETAILS_LIST);
 
         for (String thisResponse : responseList) {
             SkuDetails d = new SkuDetails(itemType, thisResponse);
             logDebug("Got sku details: " + d);
             inv.addSkuDetails(d);
         }
-        return BILLING_RESPONSE_RESULT_OK;
     }
-
+    return BILLING_RESPONSE_RESULT_OK;
+}
 
     void consumeAsyncInternal(final List<Purchase> purchases,
                               final OnConsumeFinishedListener singleListener,
