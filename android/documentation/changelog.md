@@ -1,5 +1,7 @@
 # Change Log
 <pre>
+v3.0.2  Compiled module with latest SDK (platform 23) and NDK (r10e) [MOD-2154]
+
 v3.0.1  Open sourcing module [MOD-1730]
 
 v3.0.0  Updating to Google In-App Billing api v3 [MOD-1355]

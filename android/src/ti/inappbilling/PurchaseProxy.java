@@ -6,6 +6,7 @@
 
 package ti.inappbilling;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 
@@ -39,6 +40,15 @@ public class PurchaseProxy extends KrollProxy {
     public String getToken() { return purchase.getToken(); }
     @Kroll.method @Kroll.getProperty
     public String getSignature() { return purchase.getSignature(); }
+    @Kroll.method @Kroll.getProperty
+    public KrollDict getReceipt() {
+        KrollDict receipt = new KrollDict();
+        receipt.put("data", purchase.getOriginalJson());
+        receipt.put("signature", purchase.getSignature());
+        return receipt;
+    }
+    
+
 
     public Purchase getPurchase() { return purchase; }
 }
