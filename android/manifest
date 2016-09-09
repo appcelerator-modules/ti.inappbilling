@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 3.0.2
+version: 3.0.3
 apiversion: 2
 architectures: armeabi armeabi-v7a x86
 description: In-App Billing Module
@@ -16,4 +16,4 @@ name: inappbilling
 moduleid: ti.inappbilling
 guid: 3bdb4cb3-765b-41cc-8268-d8deb35ece07
 platform: android
-minsdk: 4.0.0.GA
+minsdk: 5.3.1.GA
