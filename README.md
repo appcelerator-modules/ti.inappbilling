@@ -13,3 +13,21 @@ Interested in contributing? Read the [contributors/committer's](https://wiki.app
 
 This module is Copyright (c) 2010-2014 by Appcelerator, Inc. All Rights Reserved. Usage of this module is subject to 
 the Terms of Service agreement with Appcelerator, Inc.  
+
+## Methods of module
+
+### startSetup()
+
+### subscriptionsSupported()
+
+### queryInventory
+
+### purchase()
+
+### consume()
+
+## New Methods since v4.1.0
+
+### getPurchases()
+
+###  getPurchasesHistory()
