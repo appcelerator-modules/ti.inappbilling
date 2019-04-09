@@ -23,6 +23,9 @@ The most methods works asynchronly. The result is available as module event, as 
 
 ### startSetup(first,second)
 
+`first` can be a string or an object, `second` is optional and must be (if exists) a (callback-) function.
+
+
 The initialization method has two alternative pattern:
 * Object with properties public key and debug and a second, optional callback property
 * String public key and  and a second, optional callback property
@@ -54,6 +57,13 @@ IAP.startSetup({
 		console.log(e);
 });
 ```
+Alternatively you can use a module event listener.
+
+```js
+IAP.addEventListener('setupcomplete'),function(){
+});
+```
+In this case you can only use one parameter in this method (String or object).
 
 
 There is a method alias named `init()`.
@@ -61,13 +71,15 @@ There is a method alias named `init()`.
 ### subscriptionsSupported()
 This method return true or false;
 
-### queryInventory()
+### queryInventory(first, second)
+
+The parameter pattern is similar `startSetup(first,second)`.  `first` is an object with properties, `second` is optional and a callback function.
 This method has a JS object as property with the properties below:
 
 * queryDetails, Boolean
-* moreItemSkus
-* moreSubsSkus
-* history, new since 2.0.0
+* moreItemSkus, list of strings
+* moreSubsSkus, list of strings
+* history, Boolean, new since 2.0.0
  
 ```js
 const IAP = require("ti.inappbilling");
