@@ -18,16 +18,31 @@ the Terms of Service agreement with Appcelerator, Inc.
 
 ### startSetup()
 
+
+
 ### subscriptionsSupported()
 
-### queryInventory
+### queryInventory()
+This method has a JS object as property with the properties below:
+
+* queryDetails, Boolean
+* moreItemSkus
+* moreSubsSkus
+* history, new since 2.0.0
+ 
+```js
+const IAP = require("ti.inappbilling");
+IAP.onQueryinventorycomplete = function(e) {
+	console.log(e);
+};
+IAP.queryInventory({
+	details : true,
+	moreItemsSKUs : ['1223','56467'],
+	moreSubsSKUs : ['437364']	
+})
+```
 
 ### purchase()
 
 ### consume()
 
-## New Methods since v4.1.0
-
-### getPurchases()
-
-###  getPurchasesHistory()
