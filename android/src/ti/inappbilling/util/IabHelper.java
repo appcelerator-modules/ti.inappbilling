@@ -611,6 +611,19 @@ public class IabHelper {
         public void onQueryInventoryFinished(IabResult result, Inventory inv);
     }
 
+    /**
+     * Listener that notifies when an getPurchases operation completes.
+     */
+    public interface GetPurchasesFinishedListener {
+        /**
+         * Called to notify that an getPurchases operation completed.
+         *
+         * @param result The result of the operation.
+         * @param purchases
+
+         */
+        public void onGetPurchasesFinished(IabResult result, List<Purchase> purchases);
+    }
 
     /**
      * Asynchronous wrapper for inventory query. This will perform an inventory
