@@ -16,9 +16,37 @@ the Terms of Service agreement with Appcelerator, Inc.
 
 ## Methods of module
 
+The most methods works asynchronly. The result is available as module event, as module property or as callback binded to the method. We recommended the last method, because it is local capsulated to to calling method.
+
+### enableDebug();
+
 ### startSetup()
 
+The initialization method has two alternative pattern:
+* Object with properties public key and debug and a second, optional callback property
+* String public key and  and a second, optional callback property
 
+```js
+const IAP = require("ti.inappbilling");
+
+// first version:
+IAP.startSetup({
+	publicKey : 'ssshh27hwkw',
+	debug . false
+	setupComplete : function(e {
+		console.log(e);
+	}
+});
+// second version:
+IAP.startSetup(
+	'ssshh27hwkw',
+	function(e) {
+		console.log(e);
+});
+```
+
+
+There is a method alias named `init()`.
 
 ### subscriptionsSupported()
 
@@ -46,3 +74,20 @@ IAP.queryInventory({
 
 ### consume()
 
+
+## OverView all callbacks/events
+
+All asyncron methods has 3 methods to react to result:
+
+* event
+* callback in caller properties
+* callback in module
+
+See `startSetup()`.
+
+| event       |  callback          |
+| ------------- |:-------------:|
+| 'setupcomplete'      | onSetupComplete  |
+| 'queryinventorycomplete'      | onQeryinventoryComplete     |
+| 'purchasecomplete'|onPurchaseComplete    |
+| 'consumecomplete'| onConsumeComplete  |
