@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiApplication;
@@ -23,7 +24,8 @@ import ti.inappbilling.util.Purchase;
 import android.app.Activity;
 import android.util.Log;
 
-@Kroll.module(name = "Inappbilling", id = "ti.inappbilling")
+@Kroll.module(name = "Inappbilling", id = "ti.inappbilling", propertyAccessors = { "onInitCompleted",
+		"onQueryInventoryCompleted" })
 public class InappbillingModule extends KrollModule {
 
 	// Standard Debugging variables
@@ -103,15 +105,19 @@ public class InappbillingModule extends KrollModule {
 	public static final String QUERY_INVENTORY_COMPLETE = "queryinventorycomplete";
 	public static final String PURCHASE_COMPLETE = "purchasecomplete";
 	public static final String CONSUME_COMPLETE = "consumecomplete";
+	public static final String PUBLIC_KEY = "publicKey";
+
+	private KrollFunction onSetupCallback;
+	private KrollFunction onQueryInventoryCallback;
+	private KrollFunction onPurchaseCallback;
+	private KrollFunction onConsumeCallback;
 
 	@Override
 	public void onDestroy(Activity activity) {
-		// This method is called when the root context is being destroyed
 		logDebug("onDestroy");
 		if (mHelper != null) {
 			mHelper.dispose();
 		}
-
 		super.onDestroy(activity);
 	}
 
@@ -119,17 +125,40 @@ public class InappbillingModule extends KrollModule {
 	 * Public API
 	 */
 	@Kroll.method
-	public void startSetup(HashMap hm) {
-		KrollDict args = new KrollDict(hm);
+	public void enableDebug() {
+		DBG = true;
+	}
 
-		checkRequired(args, "publicKey");
+	@Kroll.method
+	public void setDebug(Boolean debug) {
+		DBG = debug;
+	}
 
-		String base64EncodedPublicKey = args.getString("publicKey");
-
+	@Kroll.method
+	public void startSetup(Object first, @Kroll.argument(optional = true) Object second) {
+		String base64EncodedPublicKey = null;
 		Boolean debug = false;
-		if (args.containsKey("debug")) {
-			debug = args.getBoolean("debug");
-			DBG = debug;
+		if (first instanceof String) {
+			base64EncodedPublicKey = (String) first;
+		} else {
+			KrollDict args = new KrollDict((HashMap) first);
+			checkRequired(args, PUBLIC_KEY);
+			base64EncodedPublicKey = (String) args.get(PUBLIC_KEY);
+			if (args.containsKeyAndNotNull(SETUP_COMPLETE)) {
+				onSetupCallback = (KrollFunction) args.get(SETUP_COMPLETE);
+			}
+			if (args.containsKeyAndNotNull("debug")) {
+				DBG = args.getBoolean("debug");
+			}
+		}
+		if (second != null) {
+			onSetupCallback = (KrollFunction) second;
+		}
+		if (hasProperty("onSetupComplete")) {
+			Object o = getProperty("onSetupComplete");
+			if (o instanceof KrollFunction) {
+				onSetupCallback = (KrollFunction) o;
+			}
 		}
 
 		if (mHelper == null) {
@@ -153,10 +182,14 @@ public class InappbillingModule extends KrollModule {
 		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
 			public void onIabSetupFinished(IabResult result) {
 				logDebug("Setup finished.");
-
+				HashMap<String, Object> res = createEventObjectWithResult(result, null, null);
 				if (hasListeners(SETUP_COMPLETE)) {
-					fireEvent(SETUP_COMPLETE, createEventObjectWithResult(result, null, null));
+					fireEvent(SETUP_COMPLETE,res );
 				}
+				if (onSetupCallback != null) {
+					onSetupCallback.callAsync(getKrollObject(), res);
+				}
+
 			}
 		});
 	}
@@ -168,14 +201,20 @@ public class InappbillingModule extends KrollModule {
 	}
 
 	@Kroll.method
-	public void queryInventory(@Kroll.argument(optional = true) HashMap hm) {
+	public void queryInventory(@SuppressWarnings("rawtypes") @Kroll.argument(optional = true) HashMap hm) {
 		checkSetupComplete();
-
+		if (hasProperty("onQueryInventoryComplete")) {
+			Object o = getProperty("onQueryInventoryComplete");
+			if (o instanceof KrollFunction) {
+				onQueryInventoryCallback = (KrollFunction) o;
+			}
+		}
 		boolean queryDetails = true;
 		List<String> moreItemSkus = null;
 		List<String> moreSubsSkus = null;
 
 		if (hm != null) {
+			@SuppressWarnings("unchecked")
 			KrollDict args = new KrollDict(hm);
 			queryDetails = args.optBoolean("queryDetails", true);
 			moreItemSkus = stringListFromDict(args, "moreItems", "queryInventory()");
@@ -183,18 +222,6 @@ public class InappbillingModule extends KrollModule {
 		}
 
 		mHelper.queryInventoryAsync(queryDetails, moreItemSkus, moreSubsSkus, mGotInventoryListener);
-	}
-
-	@Kroll.method
-	public void getPurchases() {
-		checkSetupComplete();
-
-	}
-
-	@Kroll.method
-	public void getPurchasesHistory() {
-		checkSetupComplete();
-
 	}
 
 	// Listener that's called when we finish querying the items and subscriptions we
@@ -210,9 +237,22 @@ public class InappbillingModule extends KrollModule {
 	};
 
 	@Kroll.method
-	public void purchase(HashMap hm) {
+	public void getPurchases() {
+		checkSetupComplete();
+		/// mHelper.getPurchasesAsync(mGotPurchasesListener);
+	}
+
+	@Kroll.method
+	public void getPurchasesHistory() {
 		checkSetupComplete();
 
+	}
+
+	@Kroll.method
+	public void purchase(@SuppressWarnings("rawtypes") HashMap hm) {
+		checkSetupComplete();
+
+		@SuppressWarnings("unchecked")
 		KrollDict args = new KrollDict(hm);
 
 		checkRequired(args, "productId");
@@ -318,7 +358,7 @@ public class InappbillingModule extends KrollModule {
 
 	List<String> stringListFromDict(KrollDict args, String propertyName, String methodName) {
 		List<String> list = null;
-		if (args.containsKey(propertyName)) {
+		if (args.containsKeyAndNotNull(propertyName)) {
 			Object itemsArray = args.get(propertyName);
 			if (!(itemsArray instanceof Object[])) {
 				throw new IllegalArgumentException("Invalid argument type `" + itemsArray.getClass().getName()

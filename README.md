@@ -19,8 +19,9 @@ the Terms of Service agreement with Appcelerator, Inc.
 The most methods works asynchronly. The result is available as module event, as module property or as callback binded to the method. We recommended the last method, because it is local capsulated to to calling method.
 
 ### enableDebug();
+### setDebug(true|false);
 
-### startSetup()
+### startSetup(first,second)
 
 The initialization method has two alternative pattern:
 * Object with properties public key and debug and a second, optional callback property
@@ -32,15 +33,24 @@ const IAP = require("ti.inappbilling");
 // first version:
 IAP.startSetup({
 	publicKey : 'ssshh27hwkw',
-	debug . false
+	debug : true
 	setupComplete : function(e {
 		console.log(e);
 	}
 });
+
 // second version:
 IAP.startSetup(
 	'ssshh27hwkw',
 	function(e) {
+		console.log(e);
+});
+
+// third version:
+IAP.startSetup({
+	publicKey : 'ssshh27hwkw',
+	debug : true
+	} ,function(e) {
 		console.log(e);
 });
 ```
@@ -49,6 +59,7 @@ IAP.startSetup(
 There is a method alias named `init()`.
 
 ### subscriptionsSupported()
+This method return true or false;
 
 ### queryInventory()
 This method has a JS object as property with the properties below:
