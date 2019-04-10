@@ -92,7 +92,9 @@ IAP.queryInventory({
 	history : false, // default false
 	moreItemsSKUs : ['1223','56467'],
 	moreSubsSKUs : ['437364']	
-})
+},function(e) {
+	console.log(e);
+});
 ```
 ### getPurchases(callback)
 It is a wrapper to queryInventory. The only paramter is the callback for result.
