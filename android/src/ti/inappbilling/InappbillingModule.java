@@ -101,7 +101,7 @@ public class InappbillingModule extends KrollModule {
 	public static final int PURCHASE_STATE_REFUNDED = 2;
 
 	// Event name constants
-	public static final String SETUP_COMPLETE = "setupcomplete";
+	public static final String SETUP_COMPLETE = "	";
 	public static final String QUERY_INVENTORY_COMPLETE = "queryinventorycomplete";
 	public static final String PURCHASE_COMPLETE = "purchasecomplete";
 	public static final String CONSUME_COMPLETE = "consumecomplete";
@@ -200,6 +200,18 @@ public class InappbillingModule extends KrollModule {
 		return mHelper.subscriptionsSupported();
 	}
 
+	
+	@Kroll.method
+	public void getPurchases(Object o) {
+		if (o instanceof KrollFunction) {
+			onPurchaseCallback = (KrollFunction)o;
+			checkSetupComplete();
+			
+			mHelper.queryInventoryAsync(false, null, null, mGotInventoryListener);
+		} else throw new IllegalArgumentException("Parameter of getPurchases() must be a callback function");
+		
+	}
+	
 	@Kroll.method
 	public void queryInventory(@SuppressWarnings("rawtypes") @Kroll.argument(optional = true) HashMap hm) {
 		checkSetupComplete();
@@ -229,24 +241,15 @@ public class InappbillingModule extends KrollModule {
 	IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
 		public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
 			logDebug("Query inventory finished.");
-
+			HashMap<String, Object> event = createEventObjectWithResult(result, inventory, null);
+			if (onPurchaseCallback!= null)
+				onPurchaseCallback.callAsync(getKrollObject(), event);
 			if (hasListeners(QUERY_INVENTORY_COMPLETE)) {
-				fireEvent(QUERY_INVENTORY_COMPLETE, createEventObjectWithResult(result, inventory, null));
+				fireEvent(QUERY_INVENTORY_COMPLETE, event);
 			}
 		}
 	};
 
-	@Kroll.method
-	public void getPurchases() {
-		checkSetupComplete();
-		/// mHelper.getPurchasesAsync(mGotPurchasesListener);
-	}
-
-	@Kroll.method
-	public void getPurchasesHistory() {
-		checkSetupComplete();
-
-	}
 
 	@Kroll.method
 	public void purchase(@SuppressWarnings("rawtypes") HashMap hm) {

@@ -610,7 +610,7 @@ public class IabHelper {
          */
         public void onQueryInventoryFinished(IabResult result, Inventory inv);
     }
-
+    
     /**
      * Listener that notifies when an getPurchases operation completes.
      */
@@ -690,6 +690,71 @@ public class IabHelper {
         queryInventoryAsync(querySkuDetails, null, listener);
     }
 
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+     * Asynchronous wrapper for getpurchases query. 
+     *
+     * @param querySkuDetails as in {@link #queryInventory}
+     * @param moreSkus as in {@link #queryInventory}
+     * @param listener The listener to notify when the refresh operation completes.
+     */
+  
+    // Appc: changed the signature of this method to take lists of items and subs
+    // public void queryInventoryAsync(final boolean querySkuDetails,
+    //        final List<String> moreSkus,
+    //        final QueryInventoryFinishedListener listener) {
+    public void getPurchasesAsync(
+            final GetPurchasesFinishedListener listener) {
+        final Handler handler = new Handler();
+        checkNotDisposed();
+        checkSetupDone("queryInventory");
+        flagStartAsync("refresh inventory");
+        (new Thread(new Runnable() {
+            public void run() {
+                IabResult result = new IabResult(BILLING_RESPONSE_RESULT_OK, "Inventory refresh successful.");
+                List<Purchase> purchases = null;
+                /*try {
+                		//purchases = getPurchaseHistory();
+                }
+                catch (IabException ex) {
+                    result = ex.getResult();
+                }*/
+
+                flagEndAsync();
+
+                final IabResult result_f = result;
+                final List<Purchase> purchases_f = purchases;
+                if (!mDisposed && listener != null) {
+                    handler.post(new Runnable() {
+                        public void run() {
+                            listener.onGetPurchasesFinished(result_f, purchases_f);
+                        }
+                    });
+                }
+            }
+        })).start();
+    }
+
+   
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     /**
      * Consumes a given in-app product. Consuming can only be done on an item
@@ -878,7 +943,7 @@ public class IabHelper {
     }
 
 
-    int queryPurchases(Inventory inv, String itemType) throws JSONException, RemoteException {
+    int queryPurchases(Inventory inventury, String itemType) throws JSONException, RemoteException {
         // Query purchases
         logDebug("Querying owned items, item type: " + itemType);
         logDebug("Package name: " + mContext.getPackageName());
@@ -924,7 +989,70 @@ public class IabHelper {
                     }
 
                     // Record ownership and token
-                    inv.addPurchase(purchase);
+                    inventury.addPurchase(purchase);
+                }
+                else {
+                    logWarn("Purchase signature verification **FAILED**. Not adding item.");
+                    logDebug("   Purchase data: " + purchaseData);
+                    logDebug("   Signature: " + signature);
+                    verificationFailed = true;
+                }
+            }
+
+            continueToken = ownedItems.getString(INAPP_CONTINUATION_TOKEN);
+            logDebug("Continuation token: " + continueToken);
+        } while (!TextUtils.isEmpty(continueToken));
+
+        return verificationFailed ? IABHELPER_VERIFICATION_FAILED : BILLING_RESPONSE_RESULT_OK;
+    }
+    
+    
+    int queryPurchasesHistory(Inventory inventury, String itemType) throws JSONException, RemoteException {
+        // Query purchaseHostory
+        logDebug("Querying owned items, item type: " + itemType);
+        logDebug("Package name: " + mContext.getPackageName());
+        boolean verificationFailed = false;
+        String continueToken = null;
+
+        do {
+            logDebug("Calling getPurchasesHistory with continuation token: " + continueToken);
+            Bundle ownedItems = mService.getPurchaseHistory(3, mContext.getPackageName(),
+                    itemType, continueToken,null);
+            int response = getResponseCodeFromBundle(ownedItems);
+            logDebug("Owned items response: " + String.valueOf(response));
+            if (response != BILLING_RESPONSE_RESULT_OK) {
+                logDebug("getPurchases() failed: " + getResponseDesc(response));
+                return response;
+            }
+            if (!ownedItems.containsKey(RESPONSE_INAPP_ITEM_LIST)
+                    || !ownedItems.containsKey(RESPONSE_INAPP_PURCHASE_DATA_LIST)
+                    || !ownedItems.containsKey(RESPONSE_INAPP_SIGNATURE_LIST)) {
+                logError("Bundle returned from getPurchases() doesn't contain required fields.");
+                return IABHELPER_BAD_RESPONSE;
+            }
+
+            ArrayList<String> ownedSkus = ownedItems.getStringArrayList(
+                        RESPONSE_INAPP_ITEM_LIST);
+            ArrayList<String> purchaseDataList = ownedItems.getStringArrayList(
+                        RESPONSE_INAPP_PURCHASE_DATA_LIST);
+            ArrayList<String> signatureList = ownedItems.getStringArrayList(
+                        RESPONSE_INAPP_SIGNATURE_LIST);
+
+            for (int i = 0; i < purchaseDataList.size(); ++i) {
+                String purchaseData = purchaseDataList.get(i);
+                String signature = signatureList.get(i);
+                String sku = ownedSkus.get(i);
+                if (Security.verifyPurchase(mSignatureBase64, purchaseData, signature)) {
+                    logDebug("Sku is owned: " + sku);
+                    Purchase purchase = new Purchase(itemType, purchaseData, signature);
+
+                    if (TextUtils.isEmpty(purchase.getToken())) {
+                        logWarn("BUG: empty/null token!");
+                        logDebug("Purchase data: " + purchaseData);
+                    }
+
+                    // Record ownership and token
+                    inventury.addPurchase(purchase);
                 }
                 else {
                     logWarn("Purchase signature verification **FAILED**. Not adding item.");
