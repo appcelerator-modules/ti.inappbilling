@@ -27,8 +27,12 @@ The most methods works asynchronly. The result is available as module event, as 
 
 
 The initialization method has two alternative pattern:
+
 * Object with properties public key and debug and a second, optional callback property
+
 * String public key and  and a second, optional callback property
+
+The publicKey can be in native format or in base64, this will automatically imported.
 
 ```js
 const IAP = require("ti.inappbilling");

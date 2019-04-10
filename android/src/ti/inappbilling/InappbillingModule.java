@@ -6,7 +6,9 @@
 
 package ti.inappbilling;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 
@@ -139,11 +141,11 @@ public class InappbillingModule extends KrollModule {
 		String base64EncodedPublicKey = null;
 		Boolean debug = false;
 		if (first instanceof String) {
-			base64EncodedPublicKey = (String) first;
+			base64EncodedPublicKey = importBase64String((String) first);
 		} else {
 			KrollDict args = new KrollDict((HashMap) first);
 			checkRequired(args, PUBLIC_KEY);
-			base64EncodedPublicKey = (String) args.get(PUBLIC_KEY);
+			base64EncodedPublicKey = importBase64String((String) args.get(PUBLIC_KEY));
 			if (args.containsKeyAndNotNull(SETUP_COMPLETE)) {
 				onSetupCallback = (KrollFunction) args.get(SETUP_COMPLETE);
 			}
@@ -417,5 +419,11 @@ public class InappbillingModule extends KrollModule {
 
 	void logWarn(String msg) {
 		Log.w(TAG, "In-app billing warning: " + msg);
+	}
+	
+	private static String importBase64String(String value) {
+		final String regex = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
+		if (value.matches(regex)) return value;
+		return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
 	}
 }
