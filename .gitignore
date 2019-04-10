@@ -2,10 +2,7 @@
 tmp
 bin
 build
-dist
-*.zip
-*/*/modules
-*/*/modules*
+android/build
 .apt_generated
 build.properties
 .gitignore
@@ -19,6 +16,5 @@ build.properties
 xcuserdata
 *.xcuserstate
 *.xcuserdata*
-
 .idea/
 libs/
