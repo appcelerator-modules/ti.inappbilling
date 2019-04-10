@@ -232,6 +232,7 @@ public class InappbillingModule extends KrollModule {
 	@Kroll.method
 	public void queryInventory(@SuppressWarnings("rawtypes") @Kroll.argument(optional = true) HashMap hm) {
 		checkSetupComplete();
+		boolean history=false;
 		if (hasProperty("onQueryInventoryComplete")) {
 			Object o = getProperty("onQueryInventoryComplete");
 			if (o instanceof KrollFunction) {
@@ -245,12 +246,20 @@ public class InappbillingModule extends KrollModule {
 		if (hm != null) {
 			@SuppressWarnings("unchecked")
 			KrollDict args = new KrollDict(hm);
-			queryDetails = args.optBoolean("queryDetails", true);
+			if (args.containsKeyAndNotNull("history")) {
+				history = args.getBoolean("history");
+			}
+			if (args.containsKeyAndNotNull("details")) {
+				queryDetails = args.getBoolean("details");
+			}
+			if (args.containsKeyAndNotNull("queryDetails")) {
+				queryDetails = args.getBoolean("queryDetails");
+			}
 			moreItemSkus = stringListFromDict(args, "moreItems", "queryInventory()");
 			moreSubsSkus = stringListFromDict(args, "moreSubs", "queryInventory()");
 		}
 
-		mHelper.queryInventoryAsync(false, queryDetails, moreItemSkus, moreSubsSkus, mGotInventoryListener);
+		mHelper.queryInventoryAsync(history, queryDetails, moreItemSkus, moreSubsSkus, mGotInventoryListener);
 	}
 
 	// Listener that's called when we finish querying the items and subscriptions we

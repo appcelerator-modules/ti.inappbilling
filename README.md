@@ -87,7 +87,8 @@ IAP.onQueryinventorycomplete = function(e) {
 	console.log(e);
 };
 IAP.queryInventory({
-	details : true,
+	details : true,  // default true
+	history : false, // default false
 	moreItemsSKUs : ['1223','56467'],
 	moreSubsSKUs : ['437364']	
 })
