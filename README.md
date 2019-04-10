@@ -92,6 +92,12 @@ IAP.queryInventory({
 	moreSubsSKUs : ['437364']	
 })
 ```
+### getPurchases(callback)
+It is a wrapper to queryInventory. The only paramter is the callback for result.
+
+
+
+### getPurchaseHistory(callback)
 
 ### purchase()
 
