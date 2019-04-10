@@ -16,7 +16,9 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiProperties;
 import org.appcelerator.titanium.util.TiActivitySupport;
 
 import ti.inappbilling.util.IabHelper;
@@ -137,6 +139,11 @@ public class InappbillingModule extends KrollModule {
 	}
 
 	@Kroll.method
+	public boolean isBillingSupported() {
+		return true;
+	}
+
+	@Kroll.method
 	public void startSetup(Object first, @Kroll.argument(optional = true) Object second) {
 		String base64EncodedPublicKey = null;
 		Boolean debug = false;
@@ -151,6 +158,9 @@ public class InappbillingModule extends KrollModule {
 			}
 			if (args.containsKeyAndNotNull("debug")) {
 				DBG = args.getBoolean("debug");
+			}
+			if (args.containsKeyAndNotNull("version")) {
+				version = args.getInt("version");
 			}
 		}
 		if (second != null) {
@@ -191,7 +201,6 @@ public class InappbillingModule extends KrollModule {
 				if (onSetupCallback != null) {
 					onSetupCallback.callAsync(getKrollObject(), res);
 				}
-
 			}
 		});
 	}
@@ -206,7 +215,7 @@ public class InappbillingModule extends KrollModule {
 	public void getPurchases(Object o) {
 		final boolean history = false;
 		final boolean details = false;
-		
+
 		if (o instanceof KrollFunction) {
 			onPurchaseCallback = (KrollFunction) o;
 			checkSetupComplete();
@@ -225,16 +234,34 @@ public class InappbillingModule extends KrollModule {
 			onPurchaseCallback = (KrollFunction) o;
 			checkSetupComplete();
 
-			mHelper.queryInventoryAsync(history, details,  mGotInventoryListener);
+			mHelper.queryInventoryAsync(history, details, mGotInventoryListener);
 		} else
 			throw new IllegalArgumentException("Parameter of getPurchases() must be a callback function");
 
 	}
 
 	@Kroll.method
+	public void getSKUDetails(Object first, @Kroll.argument(optional = true) Object second) {
+		/* this is a way to import StringArray in Titanium */
+		if (!(first instanceof Object[])) {
+			throw new IllegalArgumentException("Invalid argument type `" + first.getClass().getName());
+		}
+		ArrayList<String> skuList = new ArrayList<String>();
+		for (int i = 0; i < ((Object[]) first).length; i++) {
+			Object item = ((Object[]) first)[i];
+			if (!(item instanceof String)) {
+				throw new IllegalArgumentException("Invalid argument type `" + item.getClass().getName());
+			}
+			skuList.add((String) item);
+		}
+		// mHelper.getSKUDetailsAsync(skuList, mGotInventoryListener);
+		return;
+	}
+
+	@Kroll.method
 	public void queryInventory(@SuppressWarnings("rawtypes") @Kroll.argument(optional = true) HashMap hm) {
 		checkSetupComplete();
-		boolean history=false;
+		boolean history = false;
 		if (hasProperty("onQueryInventoryComplete")) {
 			Object o = getProperty("onQueryInventoryComplete");
 			if (o instanceof KrollFunction) {
@@ -420,10 +447,17 @@ public class InappbillingModule extends KrollModule {
 	void logWarn(String msg) {
 		Log.w(TAG, "In-app billing warning: " + msg);
 	}
-	
+
 	private static String importBase64String(String value) {
 		final String regex = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
-		if (value.matches(regex)) return value;
+		if (value.matches(regex))
+			return value;
 		return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+	}
+
+	private String getKey() {
+		TiProperties appProperties = TiApplication.getInstance().getAppProperties();
+		String deployType = appProperties.getString("ti.deploytype", "").toUpperCase();
+		return appProperties.getString("IAP_PUBLICKEY_" + deployType, "");
 	}
 }
