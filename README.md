@@ -37,7 +37,7 @@ const IAP = require("ti.inappbilling");
 IAP.startSetup({
 	publicKey : 'ssshh27hwkw',
 	debug : true
-	setupComplete : function(e {
+	setupComplete : function(e) {
 		console.log(e);
 	}
 });
@@ -77,6 +77,7 @@ The parameter pattern is similar `startSetup(first,second)`.  `first` is an obje
 This method has a JS object as property with the properties below:
 
 * queryDetails, Boolean
+* history, Boolean
 * moreItemSkus, list of strings
 * moreSubsSkus, list of strings
 * history, Boolean, new since 2.0.0
