@@ -44,7 +44,7 @@ The initialization method has two alternative pattern:
 
 * String public key and  and a second, optional callback property
 
-´```js
+```js
 const IAP = require("ti.inappbilling");
 
 // first version:

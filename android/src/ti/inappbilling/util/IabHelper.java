@@ -34,6 +34,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
+import ti.inappbilling.InappbillingModule;
 
 import com.android.vending.billing.IInAppBillingService;
 
@@ -72,7 +73,7 @@ import com.android.vending.billing.IInAppBillingService;
 public class IabHelper {
 	// Is debug logging enabled?
 	boolean mDebugLog = false;
-	final static int API_VERSION =6;
+	final static int API_VERSION = InappbillingModule.version;
 	String mDebugTag = "IabHelper";
 
 	// Is setup done?
@@ -738,8 +739,42 @@ public class IabHelper {
 	public void queryInventoryAsync(boolean history,boolean querySkuDetails, QueryInventoryFinishedListener listener) {
 		queryInventoryAsync(history,querySkuDetails, listener);
 	}
-
 	
+	
+	public void getSKUDetailsAsync(final List<String> SKUs, final QueryInventoryFinishedListener listener) {
+		final Handler handler = new Handler();
+		checkNotDisposed();
+		checkSetupDone("queryInventory");
+		flagStartAsync("refresh inventory");
+		(new Thread(new Runnable() {
+			public void run() {
+				IabResult result = new IabResult(BILLING_RESPONSE_RESULT_OK, "Inventory refresh successful.");
+				Inventory inv = null;
+				try {
+					getSKUDetails(SKUs);
+				} catch (IabException ex) {
+					result = ex.getResult();
+				}
+
+				flagEndAsync();
+
+				final IabResult result_f = result;
+				final Inventory inv_f = inv;
+				if (!mDisposed && listener != null) {
+					handler.post(new Runnable() {
+						public void run() {
+							listener.onQueryInventoryFinished(result_f, inv_f);
+						}
+					});
+				}
+			}
+		})).start();
+	}
+	
+	public void getSKUDetails(List<String> SKUs) throws IabException{
+		
+		
+	}
 
 	/**
 	 * Consumes a given in-app product. Consuming can only be done on an item that's
