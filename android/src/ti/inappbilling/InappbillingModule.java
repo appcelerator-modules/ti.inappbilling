@@ -184,7 +184,7 @@ public class InappbillingModule extends KrollModule {
 				logDebug("Setup finished.");
 				HashMap<String, Object> res = createEventObjectWithResult(result, null, null);
 				if (hasListeners(SETUP_COMPLETE)) {
-					fireEvent(SETUP_COMPLETE,res );
+					fireEvent(SETUP_COMPLETE, res);
 				}
 				if (onSetupCallback != null) {
 					onSetupCallback.callAsync(getKrollObject(), res);
@@ -200,18 +200,35 @@ public class InappbillingModule extends KrollModule {
 		return mHelper.subscriptionsSupported();
 	}
 
-	
 	@Kroll.method
 	public void getPurchases(Object o) {
-		if (o instanceof KrollFunction) {
-			onPurchaseCallback = (KrollFunction)o;
-			checkSetupComplete();
-			
-			mHelper.queryInventoryAsync(false, null, null, mGotInventoryListener);
-		} else throw new IllegalArgumentException("Parameter of getPurchases() must be a callback function");
+		final boolean history = false;
+		final boolean details = false;
 		
+		if (o instanceof KrollFunction) {
+			onPurchaseCallback = (KrollFunction) o;
+			checkSetupComplete();
+
+			mHelper.queryInventoryAsync(history, details, mGotInventoryListener);
+		} else
+			throw new IllegalArgumentException("Parameter of getPurchases() must be a callback function");
+
 	}
-	
+
+	@Kroll.method
+	public void getPurchaseHistory(Object o) {
+		final boolean history = true;
+		final boolean details = false;
+		if (o instanceof KrollFunction) {
+			onPurchaseCallback = (KrollFunction) o;
+			checkSetupComplete();
+
+			mHelper.queryInventoryAsync(history, details,  mGotInventoryListener);
+		} else
+			throw new IllegalArgumentException("Parameter of getPurchases() must be a callback function");
+
+	}
+
 	@Kroll.method
 	public void queryInventory(@SuppressWarnings("rawtypes") @Kroll.argument(optional = true) HashMap hm) {
 		checkSetupComplete();
@@ -233,7 +250,7 @@ public class InappbillingModule extends KrollModule {
 			moreSubsSkus = stringListFromDict(args, "moreSubs", "queryInventory()");
 		}
 
-		mHelper.queryInventoryAsync(queryDetails, moreItemSkus, moreSubsSkus, mGotInventoryListener);
+		mHelper.queryInventoryAsync(false, queryDetails, moreItemSkus, moreSubsSkus, mGotInventoryListener);
 	}
 
 	// Listener that's called when we finish querying the items and subscriptions we
@@ -242,14 +259,13 @@ public class InappbillingModule extends KrollModule {
 		public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
 			logDebug("Query inventory finished.");
 			HashMap<String, Object> event = createEventObjectWithResult(result, inventory, null);
-			if (onPurchaseCallback!= null)
+			if (onPurchaseCallback != null)
 				onPurchaseCallback.callAsync(getKrollObject(), event);
 			if (hasListeners(QUERY_INVENTORY_COMPLETE)) {
 				fireEvent(QUERY_INVENTORY_COMPLETE, event);
 			}
 		}
 	};
-
 
 	@Kroll.method
 	public void purchase(@SuppressWarnings("rawtypes") HashMap hm) {
