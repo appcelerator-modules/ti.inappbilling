@@ -26,7 +26,7 @@ public class Purchase {
     String mOrderId;
     String mPackageName;
     String mSku;
-    long mPurchaseTime;
+    int mPurchaseTime;
     int mPurchaseState;
     String mDeveloperPayload;
     String mToken;
@@ -40,7 +40,7 @@ public class Purchase {
         mOrderId = o.optString("orderId");
         mPackageName = o.optString("packageName");
         mSku = o.optString("productId");
-        mPurchaseTime = o.optLong("purchaseTime");
+        mPurchaseTime = o.optInt("purchaseTime");
         mPurchaseState = o.optInt("purchaseState");
         mDeveloperPayload = o.optString("developerPayload");
         mToken = o.optString("token", o.optString("purchaseToken"));
@@ -51,7 +51,7 @@ public class Purchase {
     public String getOrderId() { return mOrderId; }
     public String getPackageName() { return mPackageName; }
     public String getSku() { return mSku; }
-    public long getPurchaseTime() { return mPurchaseTime; }
+    public int getPurchaseTime() { return mPurchaseTime; }
     public int getPurchaseState() { return mPurchaseState; }
     public String getDeveloperPayload() { return mDeveloperPayload; }
     public String getToken() { return mToken; }
