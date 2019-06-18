@@ -31,7 +31,7 @@ public class PurchaseProxy extends KrollProxy {
     @Kroll.method @Kroll.getProperty
     public String getProductId() { return purchase.getSku(); }
     @Kroll.method @Kroll.getProperty
-    public long getPurchaseTime() { return purchase.getPurchaseTime(); }
+    public Long getPurchaseTime() { return purchase.getPurchaseTime(); }
     @Kroll.method @Kroll.getProperty
     public int getPurchaseState() { return purchase.getPurchaseState(); }
     @Kroll.method @Kroll.getProperty
