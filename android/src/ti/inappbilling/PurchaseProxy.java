@@ -14,38 +14,78 @@ import ti.inappbilling.util.Purchase;
 
 @Kroll.proxy
 public class PurchaseProxy extends KrollProxy {
-    private Purchase purchase;
-    
-    public PurchaseProxy(Purchase p) {
-        super();
-        
-        purchase = p;
-    }
+	private Purchase purchase;
 
-    @Kroll.method @Kroll.getProperty
-    public String getType() { return purchase.getItemType(); }
-    @Kroll.method @Kroll.getProperty
-    public String getOrderId() { return purchase.getOrderId(); }
-    @Kroll.method @Kroll.getProperty
-    public String getPackageName() { return purchase.getPackageName(); }
-    @Kroll.method @Kroll.getProperty
-    public String getProductId() { return purchase.getSku(); }
-    @Kroll.method @Kroll.getProperty
-    public long getPurchaseTime() { return purchase.getPurchaseTime(); }
-    @Kroll.method @Kroll.getProperty
-    public int getPurchaseState() { return purchase.getPurchaseState(); }
-    @Kroll.method @Kroll.getProperty
-    public String getDeveloperPayload() { return purchase.getDeveloperPayload(); }
-    @Kroll.method @Kroll.getProperty
-    public String getToken() { return purchase.getToken(); }
-    @Kroll.method @Kroll.getProperty
-    public String getSignature() { return purchase.getSignature(); }
-    public Purchase getPurchase() { return purchase; }
-    @Kroll.method @Kroll.getProperty
-    public KrollDict getReceipt() {
-        KrollDict receipt = new KrollDict();
-        receipt.put("data", purchase.getOriginalJson());
-        receipt.put("signature", purchase.getSignature());
-        return receipt;
-    }
+	public PurchaseProxy(Purchase p) {
+		super();
+
+		purchase = p;
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getType() {
+		return purchase.getItemType();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getOrderId() {
+		return purchase.getOrderId();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getPackageName() {
+		return purchase.getPackageName();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getProductId() {
+		return purchase.getSku();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public Long getPurchaseTime() {
+		return purchase.getPurchaseTime();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public int getPurchaseState() {
+		return purchase.getPurchaseState();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getDeveloperPayload() {
+		return purchase.getDeveloperPayload();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getToken() {
+		return purchase.getToken();
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public String getSignature() {
+		return purchase.getSignature();
+	}
+
+	public Purchase getPurchase() {
+		return purchase;
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public KrollDict getReceipt() {
+		KrollDict receipt = new KrollDict();
+		receipt.put("data", purchase.getOriginalJson());
+		receipt.put("signature", purchase.getSignature());
+		return receipt;
+	}
 }
